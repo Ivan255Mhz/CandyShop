@@ -69,7 +69,8 @@ namespace CandyShop
 
         private void button4_Click(object sender, EventArgs e)
         {
-            
+            decimal total = 0;
+
             var selectedProducts = checkedListBox1.CheckedItems
                 .Cast<Product_before__payment>()
                 .ToList();
@@ -80,35 +81,36 @@ namespace CandyShop
                 return;
             }
 
-            
+
             var receiptContent = new StringBuilder();
 
-            
+
             receiptContent.AppendLine($"Чек от {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
             receiptContent.AppendLine("----------------------------------------");
 
-            
+
             foreach (var product in selectedProducts)
             {
-                receiptContent.AppendLine($"{product.tovar.Name} - {product.cout} кг × {product.tovar.Prise}₽ = {(product.tovar.Prise*product.cout)}₽");
+                receiptContent.AppendLine($"{product.tovar.Name} - {product.cout} кг × {product.tovar.Prise}₽ = {(product.tovar.Prise * product.cout)}₽");
+                total += product.total;
             }
 
-            
+
             receiptContent.AppendLine("----------------------------------------");
             receiptContent.AppendLine($"ИТОГО: {selectedProducts.Sum(p => p.total)}₽");
 
-            
+
             try
             {
-                
+
                 string fileName = $"Чек_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
                 string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
                 string fullPath = Path.Combine(documentsPath, fileName);
 
-                
+
                 File.WriteAllText(fullPath, receiptContent.ToString(), Encoding.UTF8);
 
-                
+
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = fullPath,
@@ -119,6 +121,20 @@ namespace CandyShop
             {
                 MessageBox.Show($"Ошибка при сохранении чека: {ex.Message}");
             }
+
+            ShiftReport.AddReceipt(receiptContent, total);
+
+            checkedListBox1.Items.Clear();
+            label2.Text = "0";
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            string fileName = $"Отчет_смена_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string fullPath = Path.Combine(documentsPath, fileName);
+
+            ShiftReport.SaveAndReset(fullPath);
         }
     }
 
